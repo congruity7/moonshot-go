@@ -1,11 +1,13 @@
 package service
 
-import "database/sql"
+import (
+	"gorm.io/gorm"
+)
 
 type DatabaseService struct {
-	Db *sql.DB
+	Db *gorm.DB
 }
 
-func NewDatabaseService(db *sql.DB) *DatabaseService {
+func NewDatabaseService(db *gorm.DB) *DatabaseService {
 	return &DatabaseService{Db: db}
 }

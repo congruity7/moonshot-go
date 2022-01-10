@@ -13,5 +13,5 @@ type Wallet struct {
 	WalletStatus   uint8
 	TradingBalance float32
 	FundingBalance float32
-	UserID         uint
+	User           User
 }

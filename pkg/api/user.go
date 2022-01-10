@@ -1,33 +1,29 @@
 package api
 
 import (
-	"context"
+	"encoding/json"
 	"net/http"
-	"time"
+	"strconv"
 
 	"github.com/congruity7/moonshot-go/pkg/models"
 	"github.com/julienschmidt/httprouter"
+	"github.com/sirupsen/logrus"
 )
 
 func (c *Context) GetUserByID(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	ctx, cancel := context.WithTimeout(r.Context(), time.Second*10)
-	defer cancel()
 
+	logrus.Info("in get user by id")
 	var user models.User
-	var id int
+	id := ps.ByName("user_id")
 
-	const selectSQL = `SELECT * FROM users WHERE id = $1;`
-
-	err := c.ds.Db.QueryRowContext(ctx, selectSQL, id).Scan(&user)
-
-	if err != nil {
-		c._log.Error("fetching user", "id", id, "err", err)
-	}
-
-	c._log.Info("fetched user details", "user", user)
+	idValue, _ := strconv.ParseInt(id, 10, 64)
+	c.ds.Db.Table("user").First(&user, "id = ?", idValue)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+
+	bytes, _ := json.Marshal(user)
+	w.Write(bytes)
 }
 
 func (c *Context) GetUsers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
