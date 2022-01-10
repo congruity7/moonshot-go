@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"sync"
@@ -9,6 +10,7 @@ import (
 	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/mysql"
 	"github.com/congruity7/moonshot-go/pkg/api"
 	"github.com/congruity7/moonshot-go/pkg/service"
+	"github.com/joho/godotenv"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/mysql"
@@ -37,8 +39,27 @@ import (
 // 	return
 // }
 
+func goDotEnvVariable(key string) string {
+
+	// load .env file
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+	return os.Getenv(key)
+}
+
 func Setup() {
-	dsn := "fred:asdfzxcv@cloudsql(phonic-ceremony-317217:asia-northeast1:divvy-db)/moonshot"
+	dsn := fmt.Sprintf("%s:%s@%s(%s)/%s",
+		goDotEnvVariable("MOONSHOT_DB_USER"),
+		goDotEnvVariable("MOONSHOT_DB_PASSWD"),
+		goDotEnvVariable("MOONSHOT_DB_PROTOCOL"),
+		goDotEnvVariable("MOONSHOT_DB_INSTANCE"),
+		goDotEnvVariable("MOONSHOT_DB_NAME"))
+
+	logrus.Info("DSN : ", dsn)
 
 	dbInstance, err := gorm.Open(mysql.New(mysql.Config{
 		DriverName: "mysql",
