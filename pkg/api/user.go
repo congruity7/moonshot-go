@@ -27,7 +27,16 @@ func (c *Context) GetUserByID(w http.ResponseWriter, r *http.Request, ps httprou
 }
 
 func (c *Context) GetUsers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	logrus.Info("in get user by id")
+	var users []models.User
 
+	c.ds.Db.Table("user").Find(&users)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	bytes, _ := json.Marshal(users)
+	w.Write(bytes)
 }
 
 func (c *Context) CreateUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
