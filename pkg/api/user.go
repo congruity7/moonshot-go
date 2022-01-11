@@ -27,7 +27,27 @@ func (c *Context) GetUserByID(w http.ResponseWriter, r *http.Request, ps httprou
 }
 
 func (c *Context) GetUsers(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	logrus.Info("in get user by id")
+
+	queryValues := r.URL.Query()
+
+	if wa := queryValues.Get("wallet_address"); wa != "" {
+		var user models.User
+		var wallet models.Wallet
+
+		c.ds.Db.Table("wallet").First(&wallet, "wallet_address = ?", wa)
+
+		logrus.Info("wallet", wallet)
+
+		c.ds.Db.Table("user").First(&user, "id", wallet.ID)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+
+		bytes, _ := json.Marshal(user)
+		w.Write(bytes)
+		return
+	}
+
 	var users []models.User
 
 	c.ds.Db.Table("user").Find(&users)

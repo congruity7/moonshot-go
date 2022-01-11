@@ -52,7 +52,7 @@ func goDotEnvVariable(key string) string {
 }
 
 func Setup() {
-	dsn := fmt.Sprintf("%s:%s@%s(%s)/%s",
+	dsn := fmt.Sprintf("%s:%s@%s(%s)/%s?parseTime=true",
 		goDotEnvVariable("MOONSHOT_DB_USER"),
 		goDotEnvVariable("MOONSHOT_DB_PASSWD"),
 		goDotEnvVariable("MOONSHOT_DB_PROTOCOL"),
