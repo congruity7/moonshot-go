@@ -38,7 +38,7 @@ func (c *Context) GetUsers(w http.ResponseWriter, r *http.Request, ps httprouter
 
 		logrus.Info("wallet", wallet)
 
-		c.ds.Db.Table("user").First(&user, "id", wallet.ID)
+		c.ds.Db.Table("user").Preload("wallet").First(&user, "id", wallet.UserID)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -60,7 +60,28 @@ func (c *Context) GetUsers(w http.ResponseWriter, r *http.Request, ps httprouter
 }
 
 func (c *Context) CreateUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	var user models.User
+	err := json.NewDecoder(r.Body).Decode(&user)
 
+	if err != nil {
+		logrus.Error("creating user", err)
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	result := c.ds.Db.Table("user").Create(&user)
+
+	if result.Error != nil {
+		logrus.Error("creating user", result.Error)
+		http.Error(w, "failed", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	bytes, _ := json.Marshal(user)
+	w.Write(bytes)
 }
 
 func (c *Context) UpdateUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {

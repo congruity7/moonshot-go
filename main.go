@@ -9,6 +9,7 @@ import (
 
 	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/mysql"
 	"github.com/congruity7/moonshot-go/pkg/api"
+	"github.com/congruity7/moonshot-go/pkg/models"
 	"github.com/congruity7/moonshot-go/pkg/service"
 	"github.com/joho/godotenv"
 	"github.com/julienschmidt/httprouter"
@@ -72,6 +73,8 @@ func Setup() {
 
 	logrus.Info("success connecting to db")
 
+	dbInstance.AutoMigrate(&models.User{}, &models.Wallet{}, &models.Bet{}, &models.PlacedBet{}, &models.Config{})
+
 	var wg sync.WaitGroup
 	var stopChan <-chan struct{}
 
@@ -104,6 +107,16 @@ func StartAPI(wg *sync.WaitGroup, ds *service.DatabaseService, rs *service.Redis
 	router.POST("/moonshot/v1/user", ac.CreateUser)
 	router.PUT("/moonshot/v1/user", ac.UpdateUser)
 	router.DELETE("/moonshot/v1/user/:user_id/", ac.DeleteUserByID)
+
+	router.GET("/moonshot/v1/wallet/:wallet_id/", ac.GetWalletByID)
+	router.GET("/moonshot/v1/wallet", ac.GetWallets)
+	router.POST("/moonshot/v1/wallet", ac.CreateWallet)
+	router.PUT("/moonshot/v1/wallet", ac.UpdateWallet)
+	router.DELETE("/moonshot/v1/wallet/:wallet/", ac.DeleteWalletByID)
+
+	router.GET("/moonshot/v1/config", ac.GetConfig)
+	router.POST("/moonshot/v1/config", ac.CreateConfig)
+	router.PUT("/moonshot/v1/config", ac.UpdateConfig)
 
 	// n := negroni.New(negroni.NewRecovery(),
 	// 	NewAuthMiddleware())

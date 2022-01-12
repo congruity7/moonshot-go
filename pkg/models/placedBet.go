@@ -1,21 +1,19 @@
 package models
 
 import (
-	"time"
-
 	"gorm.io/gorm"
 )
 
 type PlacedBet struct {
 	gorm.Model
-	ID               uint
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
 	Trash            bool
-	User             User
-	Wallet           Wallet
-	Bet              Bet
+	UserID           uint
+	WalletID         uint
+	BetID            uint
 	Status           uint8
 	PayoutMultiplier float32
 	Amount           float32
+	// User             User   `gorm:"foreignKey:UserID"`
+	// Wallet           Wallet `gorm:"foreignKey:WalletID"`
+	// Bet              Bet    `gorm:"foreignKey:BetID"`
 }
