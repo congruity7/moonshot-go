@@ -33,11 +33,17 @@ func (c *Context) GetWallets(w http.ResponseWriter, r *http.Request, ps httprout
 	if uid := queryValues.Get("user_id"); uid != "" {
 		var user models.User
 		var wallet models.Wallet
-
-		c.ds.Db.Table("user").First(&wallet, "id = ?", uid)
-		c.ds.Db.Table("wallet").First(&wallet, "id", user.ID)
-
 		w.Header().Set("Content-Type", "application/json")
+		id, err := strconv.Atoi(uid)
+		if err != nil {
+			logrus.Error("getting wallet", err)
+			http.Error(w, "invalid request", http.StatusBadRequest)
+			return
+		}
+
+		c.ds.Db.Table("user").First(&user, "id = ?", id)
+		c.ds.Db.Table("wallet").First(&wallet, "user_id", user.ID)
+
 		w.WriteHeader(http.StatusOK)
 
 		bytes, _ := json.Marshal(wallet)
