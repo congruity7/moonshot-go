@@ -30,6 +30,19 @@ func (c *Context) GetWallets(w http.ResponseWriter, r *http.Request, ps httprout
 
 	queryValues := r.URL.Query()
 
+	if walletAddress := queryValues.Get("wallet_address"); walletAddress != "" {
+		var wallet models.Wallet
+		w.Header().Set("Content-Type", "application/json")
+
+		c.ds.Db.Table("wallet").First(&wallet, "wallet_address", walletAddress)
+
+		w.WriteHeader(http.StatusOK)
+
+		bytes, _ := json.Marshal(wallet)
+		w.Write(bytes)
+		return
+	}
+
 	if uid := queryValues.Get("user_id"); uid != "" {
 		var user models.User
 		var wallet models.Wallet
