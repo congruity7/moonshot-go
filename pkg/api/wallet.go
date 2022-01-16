@@ -81,6 +81,7 @@ func (c *Context) CreateWallet(w http.ResponseWriter, r *http.Request, ps httpro
 
 	if err != nil {
 		logrus.Error("creating wallet", err)
+		w.Header().Set("Content-Type", "application/json")
 		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
 	}
@@ -89,6 +90,7 @@ func (c *Context) CreateWallet(w http.ResponseWriter, r *http.Request, ps httpro
 
 	if result.Error != nil {
 		logrus.Error("creating wallet", result.Error)
+		w.Header().Set("Content-Type", "application/json")
 		http.Error(w, "failed", http.StatusInternalServerError)
 		return
 	}
@@ -101,6 +103,30 @@ func (c *Context) CreateWallet(w http.ResponseWriter, r *http.Request, ps httpro
 }
 
 func (c *Context) UpdateWallet(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	var wallet models.Wallet
+	err := json.NewDecoder(r.Body).Decode(&wallet)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		logrus.Error("updating wallet", err)
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	result := c.ds.Db.Table("wallet").Save(wallet)
+
+	if result.Error != nil {
+		w.Header().Set("Content-Type", "application/json")
+		logrus.Error("updating wallet", result.Error)
+		http.Error(w, "failed", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	bytes, _ := json.Marshal(wallet)
+	w.Write(bytes)
 
 }
 

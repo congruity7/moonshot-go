@@ -64,6 +64,7 @@ func (c *Context) CreateUser(w http.ResponseWriter, r *http.Request, ps httprout
 	err := json.NewDecoder(r.Body).Decode(&user)
 
 	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
 		logrus.Error("creating user", err)
 		http.Error(w, "invalid request", http.StatusBadRequest)
 		return
@@ -72,6 +73,7 @@ func (c *Context) CreateUser(w http.ResponseWriter, r *http.Request, ps httprout
 	result := c.ds.Db.Table("user").Create(&user)
 
 	if result.Error != nil {
+		w.Header().Set("Content-Type", "application/json")
 		logrus.Error("creating user", result.Error)
 		http.Error(w, "failed", http.StatusInternalServerError)
 		return
@@ -85,7 +87,30 @@ func (c *Context) CreateUser(w http.ResponseWriter, r *http.Request, ps httprout
 }
 
 func (c *Context) UpdateUser(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	var user models.User
+	err := json.NewDecoder(r.Body).Decode(&user)
 
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		logrus.Error("updating user", err)
+		http.Error(w, "invalid request", http.StatusBadRequest)
+		return
+	}
+
+	result := c.ds.Db.Table("user").Save(user)
+
+	if result.Error != nil {
+		w.Header().Set("Content-Type", "application/json")
+		logrus.Error("updating user", result.Error)
+		http.Error(w, "failed", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	bytes, _ := json.Marshal(user)
+	w.Write(bytes)
 }
 
 func (c *Context) DeleteUserByID(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {

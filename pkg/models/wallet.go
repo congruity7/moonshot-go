@@ -12,5 +12,6 @@ type Wallet struct {
 	WalletStatus   uint8   `json:"wallet_status"`
 	TradingBalance float32 `json:"trading_balance"`
 	FundingBalance float32 `json:"funding_balance"`
+	WagerAmount    float32 `json:"wager_amount"`
 	//User           User    `gorm:"foreignKey:UserID"`
 }
