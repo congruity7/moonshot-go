@@ -10,6 +10,29 @@ import (
 	"golang.org/x/net/context"
 )
 
+func (c *Context) PingStore(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	conn, err := c.rs.Pool.GetContext(ctx)
+	defer conn.Close()
+
+	i, err := redis.String(conn.Do("PING"))
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		c._log.Error("pinging memory store", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	bytes, _ := json.Marshal(i)
+	w.Write(bytes)
+}
+
 func (c *Context) GetKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
