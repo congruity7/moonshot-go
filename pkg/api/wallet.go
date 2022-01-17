@@ -12,7 +12,6 @@ import (
 
 func (c *Context) GetWalletByID(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
-	logrus.Info("in get wallet by id")
 	var wallet models.Wallet
 	id := ps.ByName("wallet_id")
 

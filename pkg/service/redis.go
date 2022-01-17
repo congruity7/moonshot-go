@@ -1,13 +1,13 @@
 package service
 
 import (
-	"github.com/go-redis/redis"
+	"github.com/gomodule/redigo/redis"
 )
 
 type RedisService struct {
-	rc *redis.Client
+	Pool *redis.Pool
 }
 
-func NewRedisService(rc *redis.Client) *RedisService {
-	return &RedisService{rc: rc}
+func NewRedisService(pool *redis.Pool) *RedisService {
+	return &RedisService{Pool: pool}
 }

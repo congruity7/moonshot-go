@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"github.com/congruity7/moonshot-go/pkg/api"
 	"github.com/congruity7/moonshot-go/pkg/models"
 	"github.com/congruity7/moonshot-go/pkg/service"
+	"github.com/gomodule/redigo/redis"
 	"github.com/joho/godotenv"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
@@ -75,18 +77,39 @@ func Setup() {
 
 	dbInstance.AutoMigrate(&models.User{}, &models.Wallet{}, &models.Bet{}, &models.PlacedBet{}, &models.Config{})
 
+	redisHost := goDotEnvVariable("MOONSHOT_REDIS_HOST")
+	if redisHost == "" {
+		logrus.Fatal("connecting to redis : ", errors.New("redis host needs to be set"))
+	}
+	redisPort := goDotEnvVariable("MOONSHOT_REDIS_PORT")
+	if redisPort == "" {
+		logrus.Fatal("connecting to redis : ", errors.New("redis port needs to be set"))
+	}
+	redisAddr := fmt.Sprintf("%s:%s", redisHost, redisPort)
+
+	const maxConnections = 10
+	redisPool := &redis.Pool{
+		MaxIdle: maxConnections,
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.Dial("tcp", redisAddr)
+			if err != nil {
+				return nil, fmt.Errorf("redis.Dial: %v", err)
+			}
+			return c, err
+		},
+	}
+
 	var wg sync.WaitGroup
 	var stopChan <-chan struct{}
 
 	ds := service.NewDatabaseService(dbInstance)
-	rs := service.NewRedisService(nil)
-	logger := &logrus.Logger{}
+	rs := service.NewRedisService(redisPool)
+	logger := logrus.New()
 
-	logger.SetOutput(os.Stdout)
-
-	wg.Add(1)
+	wg.Add(2)
 
 	go StartAPI(&wg, ds, rs, logger, stopChan)
+	//go SyncTransactionsFromRPC(&wg, ds, rs, logger, stopChan)
 
 	wg.Wait()
 }
@@ -118,6 +141,10 @@ func StartAPI(wg *sync.WaitGroup, ds *service.DatabaseService, rs *service.Redis
 	router.POST("/moonshot/v1/config", ac.CreateConfig)
 	router.PUT("/moonshot/v1/config", ac.UpdateConfig)
 
+	router.GET("/moonshot/v1/keys", ac.GetKey)
+	router.POST("/moonshot/v1/keys", ac.CreateKey)
+	router.PUT("/moonshot/v1/keys", ac.CreateKey)
+	router.DELETE("/moonshot/v1/keys", ac.DeleteKey)
 	// n := negroni.New(negroni.NewRecovery(),
 	// 	NewAuthMiddleware())
 	// n.UseHandler(router)
@@ -125,9 +152,14 @@ func StartAPI(wg *sync.WaitGroup, ds *service.DatabaseService, rs *service.Redis
 	//api := &http.Server{Addr: ":8000", Handler: n}
 
 	go func() {
-		if err := http.ListenAndServe(":8000", router); err != nil {
-			logger.Error("starting api server", err)
+		port := os.Getenv("PORT")
+		if port == "" {
+			port = "8000"
 		}
+		log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), router))
+		// if err := http.ListenAndServe(":8000", router); err != nil {
+		// 	logger.Error("starting api server", err)
+		// }
 	}()
 
 	logrus.Info("waiting for stop signal")
@@ -141,6 +173,51 @@ func StartAPI(wg *sync.WaitGroup, ds *service.DatabaseService, rs *service.Redis
 	// api.Shutdown(ctx)
 
 }
+
+// func SyncTransactionsFromRPC(wg *sync.WaitGroup, ds *service.DatabaseService, rs *service.RedisService, logger *logrus.Logger, stopChan <-chan struct{}) {
+// 	defer wg.Done()
+// 	periodTicker := time.NewTicker(45 * time.Second)
+
+// 	for {
+// 		select {
+// 		case <-periodTicker.C:
+// 			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+// 			defer cancel()
+
+// 			u := url.URL{Scheme: "ws", Host: "api.devnet.solana.com"}
+// 			log.Printf("connecting to %s", u.String())
+
+// 			c, rsp, err := websocket.DefaultDialer.DialContext(ctx, u.String(), http.Header{"Content-Type": []string{"application/json"}})
+// 			if err != nil {
+// 				log.Fatal("dial:", err)
+// 			}
+
+// 			logrus.Info("connected", rsp.Body)
+
+// 			objStream := websocketjsonrpc2.NewObjectStream(c)
+
+// 			conn := jsonrpc2.NewConn(ctx, objStream, nil)
+
+// 			var result interface{}
+// 			rpcVersion := map[string]interface{}{"jsonrpc": "2.0"}
+// 			rpcID := map[string]interface{}{"id": 1}
+
+// 			err = conn.Call(ctx, "getBalance", []interface{}{"83astBRguLMdt2h5U1Tpdq5tjFoJ6noeGwaY3mDLVcri", rpcVersion, rpcID}, result)
+
+// 			if err != nil {
+// 				logger.Error(err)
+// 			}
+
+// 			logrus.Info("result", result)
+
+// 			conn.Close()
+
+// 		case <-stopChan:
+
+// 		}
+// 	}
+
+// }
 
 func main() {
 	Setup()

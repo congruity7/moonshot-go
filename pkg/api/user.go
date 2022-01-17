@@ -12,7 +12,6 @@ import (
 
 func (c *Context) GetUserByID(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 
-	logrus.Info("in get user by id")
 	var user models.User
 	id := ps.ByName("user_id")
 
