@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/mysql"
 	"github.com/congruity7/moonshot-go/pkg/api"
@@ -98,6 +100,15 @@ func Setup() {
 			return c, err
 		},
 	}
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	conn, err := redisPool.GetContext(ctx)
+	defer conn.Close()
+
+	i, err := redis.String(conn.Do("PING"))
+
+	logrus.Info("PING ", i)
 
 	var wg sync.WaitGroup
 	var stopChan <-chan struct{}
