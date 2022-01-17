@@ -31,7 +31,7 @@ func (c *Context) GetKey(w http.ResponseWriter, r *http.Request, ps httprouter.P
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		c._log.Error("getting key", key)
+		c._log.Error("getting key", key, err)
 		return
 	}
 
@@ -63,7 +63,7 @@ func (c *Context) CreateKey(w http.ResponseWriter, r *http.Request, ps httproute
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		c._log.Error("creating key", key)
+		c._log.Error("creating key", key, err)
 		return
 	}
 
@@ -94,7 +94,7 @@ func (c *Context) DeleteKey(w http.ResponseWriter, r *http.Request, ps httproute
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		c._log.Error("delete key", key)
+		c._log.Error("delete key", key, err)
 		return
 	}
 
