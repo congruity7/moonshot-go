@@ -14,6 +14,6 @@ type Config struct {
 	SpeedSetting    float32 `json:"speed_setting"`
 	CooldownSetting float32 `json:"cooldown_setting"`
 	HouseEdge       float32 `json:"house_edge"`
-	Decimal         float32 `json:"decimal"`
+	Round           float32 `json:"round"`
 	MinTotalWager   float32 `json:"min_total_wager"`
 }
