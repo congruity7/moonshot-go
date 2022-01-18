@@ -10,7 +10,7 @@ RUN go mod download
 
 COPY . .
 
-RUN GOOS=linux GOARCH=arm go build -o moonshot-go .
+RUN GOOS=linux go build -o moonshot-go .
 
 # Expose port 8000 to the outside world
 EXPOSE 8000
