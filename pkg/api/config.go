@@ -69,11 +69,8 @@ func (c *Context) UpdateConfig(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	config.MaxMultiplier = requestConfig.MaxMultiplier
-	config.MinMultiplier = requestConfig.MinMultiplier
-
-	c.ds.Db.Table("config").Save(&config)
-	bytes, _ := json.Marshal(config)
+	c.ds.Db.Table("config").Save(&requestConfig)
+	bytes, _ := json.Marshal(requestConfig)
 	w.WriteHeader(http.StatusOK)
 	w.Write(bytes)
 	return
