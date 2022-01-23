@@ -9,11 +9,11 @@ type PlacedBet struct {
 	Trash            bool
 	UserID           uint
 	WalletID         uint
-	BetID            uint
+	RoundID          uint
 	Status           uint8
 	PayoutMultiplier float32
 	Amount           float32
 	// User             User   `gorm:"foreignKey:UserID"`
 	// Wallet           Wallet `gorm:"foreignKey:WalletID"`
-	// Bet              Bet    `gorm:"foreignKey:BetID"`
+	// Round            Round  `gorm:"foreignKey:BetID"`
 }

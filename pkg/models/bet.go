@@ -4,7 +4,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Bet struct {
+type Round struct {
 	gorm.Model
 	Trash      bool
 	Multiplier float32

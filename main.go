@@ -77,7 +77,7 @@ func Setup() {
 
 	logrus.Info("success connecting to db")
 
-	dbInstance.AutoMigrate(&models.User{}, &models.Wallet{}, &models.Bet{}, &models.PlacedBet{}, &models.Config{})
+	dbInstance.AutoMigrate(&models.User{}, &models.Wallet{}, &models.Round{}, &models.PlacedBet{}, &models.Config{})
 
 	redisHost := goDotEnvVariable("MOONSHOT_REDIS_HOST")
 	if redisHost == "" {
@@ -107,6 +107,10 @@ func Setup() {
 	defer conn.Close()
 
 	i, err := redis.String(conn.Do("PING"))
+
+	if err != nil {
+		logrus.Error("pinging the memory store.", err)
+	}
 
 	logrus.Info("PING ", i)
 
