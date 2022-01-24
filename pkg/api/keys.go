@@ -17,7 +17,7 @@ func (c *Context) PingStore(w http.ResponseWriter, r *http.Request, ps httproute
 	// defer conn.Close()
 
 	//i, err := redis.String(conn.Do("PING"))
-	err := c.rs.Client.Ping().Err()
+	pong, err := c.rs.Client.Ping().Result()
 	//Set(ctx, "key", "value", 0).Err()
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -25,6 +25,8 @@ func (c *Context) PingStore(w http.ResponseWriter, r *http.Request, ps httproute
 		c._log.Error("pinging memory store", err)
 		return
 	}
+
+	w.Write([]byte(pong))
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
