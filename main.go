@@ -1,20 +1,18 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"sync"
-	"time"
 
 	_ "github.com/GoogleCloudPlatform/cloudsql-proxy/proxy/dialers/mysql"
 	"github.com/congruity7/moonshot-go/pkg/api"
 	"github.com/congruity7/moonshot-go/pkg/models"
 	"github.com/congruity7/moonshot-go/pkg/service"
-	"github.com/gomodule/redigo/redis"
+	"github.com/go-redis/redis"
 	"github.com/joho/godotenv"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
@@ -89,36 +87,48 @@ func Setup() {
 	}
 	redisAddr := fmt.Sprintf("%s:%s", redisHost, redisPort)
 
-	const maxConnections = 10
-	redisPool := &redis.Pool{
-		MaxIdle: maxConnections,
-		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", redisAddr)
-			if err != nil {
-				return nil, fmt.Errorf("redis.Dial: %v", err)
-			}
-			return c, err
-		},
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
+	// const maxConnections = 10
+	// redisPool := &redis.Pool{
+	// 	MaxIdle: maxConnections,
+	// 	Dial: func() (redis.Conn, error) {
+	// 		c, err := redis.Dial("tcp", redisAddr)
+	// 		if err != nil {
+	// 			return nil, fmt.Errorf("redis.Dial: %v", err)
+	// 		}
+	// 		return c, err
+	// 	},
+	// }
+	// ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	// defer cancel()
 
-	conn, err := redisPool.GetContext(ctx)
-	defer conn.Close()
+	// conn := redis.NewClient()
+	// defer conn.Close()
 
-	i, err := redis.String(conn.Do("PING"))
+	//i, err := redis.String(conn.Do("PING"))
+	// if conn == nil {
+	// 	logrus.Error("getting connection")
+	// }
 
-	if err != nil {
-		logrus.Error("pinging the memory store.", err)
-	}
+	// i, err := redis.String(conn.Do("PING"))
 
-	logrus.Info("PING ", i)
+	// if err != nil {
+	// 	logrus.Error("pinging the memory store.", err)
+	// }
+
+	// logrus.Info("PING ", i)
+	rdb := redis.NewClient(&redis.Options{
+		Addr:       redisAddr,
+		Password:   "", // no password set
+		DB:         0,  // use default DB
+		MaxRetries: 10,
+	})
+	defer rdb.Close()
 
 	var wg sync.WaitGroup
 	var stopChan <-chan struct{}
 
 	ds := service.NewDatabaseService(dbInstance)
-	rs := service.NewRedisService(redisPool)
+	rs := service.NewRedisService(rdb)
 	logger := logrus.New()
 
 	wg.Add(2)
