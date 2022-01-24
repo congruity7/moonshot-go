@@ -17,8 +17,8 @@ func (c *Context) PingStore(w http.ResponseWriter, r *http.Request, ps httproute
 	// defer conn.Close()
 
 	//i, err := redis.String(conn.Do("PING"))
-	cmd := c.rs.Client.Ping()
-	err := cmd.Err() //Set(ctx, "key", "value", 0).Err()
+	err := c.rs.Client.Ping().Err()
+	//Set(ctx, "key", "value", 0).Err()
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -29,8 +29,6 @@ func (c *Context) PingStore(w http.ResponseWriter, r *http.Request, ps httproute
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	bytes, _ := json.Marshal(cmd)
-	w.Write(bytes)
 }
 
 func (c *Context) GetKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
