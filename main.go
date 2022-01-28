@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"log"
@@ -64,6 +66,8 @@ func Setup() {
 
 	logrus.Info("DSN : ", dsn)
 
+	//redisTlsCert := tls.LoadX509KeyPair(("REDIS_TLS_CERT"))
+
 	dbInstance, err := gorm.Open(mysql.New(mysql.Config{
 		DriverName: "mysql",
 		DSN:        dsn,
@@ -86,6 +90,17 @@ func Setup() {
 		logrus.Fatal("connecting to redis : ", errors.New("redis port needs to be set"))
 	}
 	redisAddr := fmt.Sprintf("%s:%s", redisHost, redisPort)
+
+	certs := x509.NewCertPool()
+	ok := certs.AppendCertsFromPEM([]byte(goDotEnvVariable("REDIS_TLS_CERT")))
+
+	if !ok {
+		logrus.Fatal("adding certificate")
+	}
+
+	tlsConfig := tls.Config{
+		RootCAs: certs,
+	}
 
 	// const maxConnections = 10
 	// redisPool := &redis.Pool{
@@ -121,6 +136,7 @@ func Setup() {
 		Password:   "", // no password set
 		DB:         0,  // use default DB
 		MaxRetries: 10,
+		TLSConfig:  &tlsConfig,
 	})
 	defer rdb.Close()
 
