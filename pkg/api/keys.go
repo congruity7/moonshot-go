@@ -52,7 +52,7 @@ func (c *Context) GetKey(w http.ResponseWriter, r *http.Request, ps httprouter.P
 
 func (c *Context) CreateKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	key := ps.ByName("key")
-	var val interface{}
+	var val map[string]interface{}
 	err := json.NewDecoder(r.Body).Decode(&val)
 	if err != nil {
 		c._log.Error("creating key", key, err)
