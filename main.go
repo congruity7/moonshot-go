@@ -182,7 +182,7 @@ func StartAPI(wg *sync.WaitGroup, ds *service.DatabaseService, rs *service.Redis
 	router.POST("/moonshot/v1/config", ac.CreateConfig)
 	router.PUT("/moonshot/v1/config", ac.UpdateConfig)
 
-	router.GET("/moonshot/v1/keys/test", ac.PingStore)
+	//router.GET("/moonshot/v1/keys/test", ac.PingStore)
 	router.GET("/moonshot/v1/keys/:id", ac.GetKey)
 	router.POST("/moonshot/v1/keys/:id", ac.CreateKey)
 	router.PUT("/moonshot/v1/keys/:id", ac.CreateKey)
