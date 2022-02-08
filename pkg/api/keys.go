@@ -33,24 +33,7 @@ func (c *Context) PingStore(w http.ResponseWriter, r *http.Request, ps httproute
 }
 
 func (c *Context) GetKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-
-	// ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	// defer cancel()
-
 	key := ps.ByName("key")
-
-	//conn, err := c.rs.Pool.GetContext(ctx)
-	//defer conn.Close()
-
-	// if err != nil {
-	// 	w.Header().Set("Content-Type", "application/json")
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	c._log.Error("getting connection", err)
-	// 	return
-	// }
-
-	//i, err := redis.String(conn.Do("GET", key))
-
 	c._log.Info("getting key", key)
 	result, err := c.rs.Client.Get(key).Result()
 	if err != nil {
@@ -92,7 +75,7 @@ func (c *Context) CreateKey(w http.ResponseWriter, r *http.Request, ps httproute
 
 func (c *Context) DeleteKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	key := ps.ByName("key")
-	result, err := c.rs.Client.Del().Result()
+	result, err := c.rs.Client.Del(key).Result()
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
