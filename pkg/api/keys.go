@@ -43,15 +43,15 @@ func (c *Context) GetKey(w http.ResponseWriter, r *http.Request, ps httprouter.P
 		return
 	}
 
-	var output = make(map[string]interface{})
+	var output map[string]interface{}
 
 	json.Unmarshal([]byte(result), &output)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	byt, _ := json.Marshal(output)
+	w.Write(byt)
 
-	bytes, _ := json.Marshal(result)
-	w.Write(bytes)
 }
 
 func (c *Context) CreateKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
