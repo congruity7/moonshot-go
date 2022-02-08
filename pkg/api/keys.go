@@ -18,7 +18,6 @@ func (c *Context) PingStore(w http.ResponseWriter, r *http.Request, ps httproute
 
 	//i, err := redis.String(conn.Do("PING"))
 	pong, err := c.rs.Client.Ping().Result()
-	//Set(ctx, "key", "value", 0).Err()
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -51,6 +50,8 @@ func (c *Context) GetKey(w http.ResponseWriter, r *http.Request, ps httprouter.P
 	// }
 
 	//i, err := redis.String(conn.Do("GET", key))
+
+	c._log.Info("getting key", key)
 	result, err := c.rs.Client.Get(key).Result()
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -67,24 +68,14 @@ func (c *Context) GetKey(w http.ResponseWriter, r *http.Request, ps httprouter.P
 }
 
 func (c *Context) CreateKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-
-	// ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	// defer cancel()
-
 	key := ps.ByName("key")
-	value := ps.ByName("value")
-	// conn, err := c.rs.Pool.GetContext(ctx)
-	// defer conn.Close()
+	var val interface{}
+	err := json.NewDecoder(r.Body).Decode(&val)
+	if err != nil {
+		c._log.Error("creating key", key, err)
+	}
 
-	// if err != nil {
-	// 	w.Header().Set("Content-Type", "application/json")
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	c._log.Error("getting connection", err)
-	// 	return
-	// }
-
-	// i, err := redis.String(conn.Do("SET", key, value))
-	result, err := c.rs.Client.Set(key, value, 36000*time.Hour).Result()
+	result, err := c.rs.Client.Set(key, val, 36000*time.Hour).Result()
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -100,22 +91,7 @@ func (c *Context) CreateKey(w http.ResponseWriter, r *http.Request, ps httproute
 }
 
 func (c *Context) DeleteKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-
-	// ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	// defer cancel()
-
 	key := ps.ByName("key")
-	// conn, err := c.rs.Pool.GetContext(ctx)
-	// defer conn.Close()
-
-	// if err != nil {
-	// 	w.Header().Set("Content-Type", "application/json")
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	c._log.Error("getting connection", err)
-	// 	return
-	// }
-
-	//i, err := redis.String(conn.Do("DEL", key))
 	result, err := c.rs.Client.Del().Result()
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
