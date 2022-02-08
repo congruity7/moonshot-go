@@ -43,6 +43,10 @@ func (c *Context) GetKey(w http.ResponseWriter, r *http.Request, ps httprouter.P
 		return
 	}
 
+	var output = make(map[string]interface{})
+
+	json.Unmarshal([]byte(result), &output)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
@@ -58,7 +62,9 @@ func (c *Context) CreateKey(w http.ResponseWriter, r *http.Request, ps httproute
 		c._log.Error("creating key", key, err)
 	}
 
-	result, err := c.rs.Client.Set(key, val, 36000*time.Hour).Result()
+	byt, _ := json.Marshal(val)
+
+	result, err := c.rs.Client.Set(key, string(byt), 36000*time.Hour).Result()
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
