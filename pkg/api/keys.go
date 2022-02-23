@@ -33,7 +33,7 @@ func (c *Context) PingStore(w http.ResponseWriter, r *http.Request, ps httproute
 }
 
 func (c *Context) GetKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	key := ps.ByName("key")
+	key := ps.ByName("id")
 	c._log.Info("getting key", key)
 	result, err := c.rs.Client.Get(key).Result()
 	if err != nil {
@@ -55,7 +55,7 @@ func (c *Context) GetKey(w http.ResponseWriter, r *http.Request, ps httprouter.P
 }
 
 func (c *Context) CreateKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	key := ps.ByName("key")
+	key := ps.ByName("id")
 	var val map[string]interface{}
 	err := json.NewDecoder(r.Body).Decode(&val)
 	if err != nil {
@@ -80,7 +80,7 @@ func (c *Context) CreateKey(w http.ResponseWriter, r *http.Request, ps httproute
 }
 
 func (c *Context) DeleteKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	key := ps.ByName("key")
+	key := ps.ByName("id")
 	result, err := c.rs.Client.Del(key).Result()
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
