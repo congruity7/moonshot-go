@@ -33,7 +33,7 @@ func (c *Context) PingStore(w http.ResponseWriter, r *http.Request, ps httproute
 }
 
 func (c *Context) GetKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	key := ps.ByName("key")
+	key := ps.ByName("id")
 	c._log.Info("getting key", key)
 	result, err := c.rs.Client.Get(key).Result()
 	if err != nil {
@@ -43,22 +43,28 @@ func (c *Context) GetKey(w http.ResponseWriter, r *http.Request, ps httprouter.P
 		return
 	}
 
+	var output map[string]interface{}
+
+	json.Unmarshal([]byte(result), &output)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	byt, _ := json.Marshal(output)
+	w.Write(byt)
 
-	bytes, _ := json.Marshal(result)
-	w.Write(bytes)
 }
 
 func (c *Context) CreateKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	key := ps.ByName("key")
-	var val interface{}
+	key := ps.ByName("id")
+	var val map[string]interface{}
 	err := json.NewDecoder(r.Body).Decode(&val)
 	if err != nil {
 		c._log.Error("creating key", key, err)
 	}
 
-	result, err := c.rs.Client.Set(key, val, 36000*time.Hour).Result()
+	byt, _ := json.Marshal(val)
+
+	result, err := c.rs.Client.Set(key, string(byt), 36000*time.Hour).Result()
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -74,7 +80,7 @@ func (c *Context) CreateKey(w http.ResponseWriter, r *http.Request, ps httproute
 }
 
 func (c *Context) DeleteKey(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	key := ps.ByName("key")
+	key := ps.ByName("id")
 	result, err := c.rs.Client.Del(key).Result()
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
