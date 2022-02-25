@@ -187,6 +187,12 @@ func StartAPI(wg *sync.WaitGroup, ds *service.DatabaseService, rs *service.Redis
 	router.POST("/moonshot/v1/keys/:id", ac.CreateKey)
 	router.PUT("/moonshot/v1/keys/:id", ac.CreateKey)
 	router.DELETE("/moonshot/v1/keys/:id", ac.DeleteKey)
+
+	router.GET("/moonshot/v1/round/:id/", ac.GetRoundByID)
+	router.GET("/moonshot/v1/round", ac.GetRounds)
+	router.POST("/moonshot/v1/round", ac.CreateRound)
+	router.PUT("/moonshot/v1/round", ac.UpdateRound)
+	router.DELETE("/moonshot/v1/round/:id/", ac.DeleteRoundByID)
 	// n := negroni.New(negroni.NewRecovery(),
 	// 	NewAuthMiddleware())
 	// n.UseHandler(router)
